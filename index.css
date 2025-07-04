@@ -1,0 +1,158 @@
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+  font-family: "Segoe UI", "Arial", sans-serif;
+  font-size: 1.15em;
+  color: #222;
+}
+
+.main-container {
+  min-height: 540px;
+  min-width: 900px;
+  margin: 40px auto 0 auto;
+  padding: 32px 32px 24px 32px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow:
+    0 6px 32px 0 rgba(0, 0, 0, 0.1),
+    0 1.5px 4px 0 rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.buttom-container {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 24px;
+}
+
+svg {
+  display: block;
+  margin: 40px auto 0 auto;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  border: 1.5px solid #b3c6e0;
+  box-shadow: 0 2px 12px 0 rgba(180, 200, 230, 0.1);
+  height: 400px;
+  width: 800px;
+  transition: box-shadow 0.2s;
+}
+
+circle {
+  stroke: #006a71;
+  stroke-width: 2.5;
+  fill: #9acbd0;
+  opacity: 0.85;
+  transition:
+    fill 0.2s,
+    opacity 0.2s;
+}
+
+.legend-fds {
+  fill: #f7b731 !important;
+  opacity: 1 !important;
+}
+
+button {
+  padding: 6px 16px;
+  margin: 0;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #7fd7eb 0%, #5ea6e0 100%);
+  color: #fff;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px 0 rgba(127, 215, 235, 0.1);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+/* Select estilizado para parecer com os botões */
+select#periodSelect {
+  padding: 6px 36px 6px 16px; /* espaço extra à direita para o ícone */
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #7fd7eb 0%, #5ea6e0 100%);
+  color: #fff;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px 0 rgba(127, 215, 235, 0.1);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+select#periodSelect:focus,
+select#periodSelect:hover {
+  background: linear-gradient(90deg, #5ea6e0 0%, #7fd7eb 100%);
+  outline: none;
+  transform: translateY(-2px) scale(1.04);
+}
+
+select#periodSelect:active {
+  background: #5ea6e0;
+  transform: scale(0.98);
+}
+
+button:hover,
+button:focus {
+  background: linear-gradient(90deg, #5ea6e0 0%, #7fd7eb 100%);
+  transform: translateY(-2px) scale(1.04);
+  outline: none;
+}
+
+button:active {
+  background: #5ea6e0;
+  transform: scale(0.98);
+}
+
+.x.axis path,
+.x.axis line,
+.y.axis path,
+.y.axis line {
+  stroke: #b3c6e0;
+  stroke-width: 1.2;
+}
+
+.x.axis text,
+.y.axis text {
+  font-size: 1em;
+  fill: #3a4a5d;
+}
+
+.bar {
+  fill: #7fd7eb;
+  transition: fill 0.2s;
+}
+
+.bar:hover {
+  fill: #5ea6e0;
+}
+
+.label {
+  font-size: 0.95em;
+  font-weight: 600;
+  fill: #3a4a5d;
+  text-shadow:
+    0 1px 4px #fff,
+    0 0.5px 1px #b3c6e0;
+}
+
+svg text[font-weight="bold"] {
+  transform: translateY(-30px);
+}

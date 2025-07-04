@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Carregamento dos Dados</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+
+  <body>
+    <svg></svg>
+    <div id="chart-title" class="chart-title"></div>
+    <div class="buttom-container">
+      <button id="barChartBtn">Gráfico por Dia da Semana</button>
+      <button id="lineChartBtn">Gráfico de Linhas (Hora x Corridas)</button>
+      <button id="scatterBtn">Dispersão (Horário x Gorjeta)</button>
+
+      <div class="select-bar-wrapper">
+        <select id="periodSelect">
+          <option value="1" selected>Gráfico de Barras↓</option>
+          <option value="2">2 perídos</option>
+          <option value="3">3 períodos</option>
+          <option value="4">4 períodos</option>
+          <option value="8">8 períodos</option>
+        </select>
+      </div>
+
+      <button id="clearBtn">Limpar</button>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
