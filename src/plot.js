@@ -13,16 +13,17 @@ export function plotBarChart(
   const height =
     +svg.style("height").split("px")[0] - margens.top - margens.bottom;
 
-  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+  // Escala X baseada em passenger_count
   const x = d3
     .scaleBand()
-    .domain(data.map((d) => dias[d.day_of_week]))
+    .domain(data.map((d) => d.passenger_count))
     .range([0, width])
     .padding(0.1);
 
+  // Escala Y baseada em media_valor
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.total_corridas)])
+    .domain([0, d3.max(data, (d) => d.media_valor)])
     .range([height, 0]);
 
   const g = svg
@@ -35,42 +36,26 @@ export function plotBarChart(
 
   g.append("g").call(d3.axisLeft(y));
 
-  // Escala de cor ordinal para as barras dos dias da semana
-  const colorScale = d3
-    .scaleOrdinal()
-    .domain([0, 1, 2, 3, 4, 5, 6])
-    .range([
-      "#32AAD9",
-      "#FF8001",
-      "#FFC64E",
-      "#5FD0DB",
-      "#1A569C",
-      "#435D74",
-      "#FFFF00",
-    ]);
-
   g.selectAll(".bar")
     .data(data)
     .enter()
     .append("rect")
     .attr("class", "bar")
-    .attr("x", (d) => x(dias[d.day_of_week]))
-    .attr("y", (d) => y(d.total_corridas))
+    .attr("x", (d) => x(d.passenger_count))
+    .attr("y", (d) => y(d.media_valor))
     .attr("width", x.bandwidth())
-    .attr("height", (d) => height - y(d.total_corridas))
-    .attr("fill", (d) => colorScale(d.day_of_week));
+    .attr("height", (d) => height - y(d.media_valor))
+    .attr("fill", "#5ea6e0");
 
   g.selectAll(".label")
     .data(data)
     .enter()
     .append("text")
     .attr("class", "label")
-    .attr("x", (d) => x(dias[d.day_of_week]) + x.bandwidth() / 2)
-    .attr("y", (d) => y(d.total_corridas) - 5)
+    .attr("x", (d) => x(d.passenger_count) + x.bandwidth() / 2)
+    .attr("y", (d) => y(d.media_valor) - 5)
     .attr("text-anchor", "middle")
-    .text((d) => d.total_corridas);
-
-  setChartTitle("Total de Corridas por Dia da Semana");
+    .text((d) => d.media_valor.toFixed(2));
 }
 
 export function plotLineChart(
@@ -162,8 +147,6 @@ export function plotLineChart(
       .attr("font-size", "1em")
       .attr("fill", "#3a4a5d");
   });
-
-  setChartTitle("Corridas por Hora do Dia (Linha)");
 }
 
 export function plotBarChartPeriodos(
@@ -233,8 +216,6 @@ export function plotBarChartPeriodos(
   g.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x));
-
-  setChartTitle("Média da Gorjeta por Faixa do Dia");
 }
 
 export function clearChart(elementId) {
@@ -257,7 +238,11 @@ export function plotScatterplot(
   const height =
     +svg.style("height").split("px")[0] - margens.top - margens.bottom;
 
-  const x = d3.scaleLinear().domain([0, 23]).range([0, width]);
+  // Escala X baseada em trip_distance
+  const x = d3
+    .scaleLinear()
+    .domain(d3.extent(data, (d) => d.trip_distance))
+    .range([0, width]);
   const tipExtent = d3.extent(data, (d) => +d.tip_amount);
   const y = d3.scaleLinear().domain(tipExtent).range([height, 0]);
 
@@ -267,12 +252,7 @@ export function plotScatterplot(
 
   g.append("g")
     .attr("transform", `translate(0,${height})`)
-    .call(
-      d3
-        .axisBottom(x)
-        .ticks(24)
-        .tickFormat((d) => `${d}h`),
-    );
+    .call(d3.axisBottom(x));
 
   g.append("g").call(d3.axisLeft(y));
 
@@ -280,30 +260,9 @@ export function plotScatterplot(
     .data(data)
     .enter()
     .append("circle")
-    .attr("cx", (d) => x(d.hora_decimal))
+    .attr("cx", (d) => x(d.trip_distance))
     .attr("cy", (d) => y(+d.tip_amount))
     .attr("r", 3)
     .attr("fill", "#5ea6e0")
     .attr("opacity", 0.7);
-
-  setChartTitle("Dispersão: Horário x Valor da Gorjeta");
-}
-
-function setChartTitle(title) {
-  let htmlTitle = document.getElementById("chart-title");
-  if (!htmlTitle) {
-    htmlTitle = document.createElement("div");
-    htmlTitle.id = "chart-title";
-    htmlTitle.style.textAlign = "center";
-    htmlTitle.style.fontSize = "20px";
-    htmlTitle.style.fontWeight = "bold";
-    htmlTitle.style.marginTop = "32px";
-    htmlTitle.style.letterSpacing = "0.5px";
-    htmlTitle.style.color = "#2a3a4d";
-    document.body.insertBefore(
-      htmlTitle,
-      document.querySelector("svg").nextSibling,
-    );
-  }
-  htmlTitle.textContent = title;
 }
