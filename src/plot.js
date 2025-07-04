@@ -1,10 +1,11 @@
 import * as d3 from "d3";
 
 export function plotBarChart(
+  elementId,
   data,
   margens = { left: 50, right: 25, top: 25, bottom: 50 },
 ) {
-  const svg = d3.select("svg");
+  const svg = d3.select(`#${elementId}`);
   svg.selectAll("*").remove();
 
   const width =
@@ -73,10 +74,11 @@ export function plotBarChart(
 }
 
 export function plotLineChart(
+  elementId,
   data,
   margens = { left: 50, right: 25, top: 25, bottom: 50 },
 ) {
-  const svg = d3.select("svg");
+  const svg = d3.select(`#${elementId}`);
   svg.selectAll("*").remove();
 
   const width =
@@ -164,31 +166,13 @@ export function plotLineChart(
   setChartTitle("Corridas por Hora do Dia (Linha)");
 }
 
-function setChartTitle(title) {
-  let htmlTitle = document.getElementById("chart-title");
-  if (!htmlTitle) {
-    htmlTitle = document.createElement("div");
-    htmlTitle.id = "chart-title";
-    htmlTitle.style.textAlign = "center";
-    htmlTitle.style.fontSize = "20px";
-    htmlTitle.style.fontWeight = "bold";
-    htmlTitle.style.marginTop = "32px";
-    htmlTitle.style.letterSpacing = "0.5px";
-    htmlTitle.style.color = "#2a3a4d";
-    document.body.insertBefore(
-      htmlTitle,
-      document.querySelector("svg").nextSibling,
-    );
-  }
-  htmlTitle.textContent = title;
-}
-
 export function plotBarChartPeriodos(
+  elementId,
   data,
   periodosLabels,
   margens = { left: 50, right: 25, top: 25, bottom: 50 },
 ) {
-  const svg = d3.select("svg");
+  const svg = d3.select(`#${elementId}`);
   svg.selectAll("*").remove();
 
   const width =
@@ -253,18 +237,19 @@ export function plotBarChartPeriodos(
   setChartTitle("Média da Gorjeta por Faixa do Dia");
 }
 
-export function clearChart() {
-  d3.select("svg").selectAll("*").remove();
+export function clearChart(elementId) {
+  d3.select(`#${elementId}`).selectAll("*").remove();
   const htmlTitle = document.getElementById("chart-title");
   if (htmlTitle) htmlTitle.remove();
 }
 
 // Gráfico de Dispersão: Horário x Valor da Gorjeta
 export function plotScatterplot(
+  elementId,
   data,
   margens = { left: 50, right: 25, top: 25, bottom: 50 },
 ) {
-  const svg = d3.select("svg");
+  const svg = d3.select(`#${elementId}`);
   svg.selectAll("*").remove();
 
   const width =
@@ -302,4 +287,23 @@ export function plotScatterplot(
     .attr("opacity", 0.7);
 
   setChartTitle("Dispersão: Horário x Valor da Gorjeta");
+}
+
+function setChartTitle(title) {
+  let htmlTitle = document.getElementById("chart-title");
+  if (!htmlTitle) {
+    htmlTitle = document.createElement("div");
+    htmlTitle.id = "chart-title";
+    htmlTitle.style.textAlign = "center";
+    htmlTitle.style.fontSize = "20px";
+    htmlTitle.style.fontWeight = "bold";
+    htmlTitle.style.marginTop = "32px";
+    htmlTitle.style.letterSpacing = "0.5px";
+    htmlTitle.style.color = "#2a3a4d";
+    document.body.insertBefore(
+      htmlTitle,
+      document.querySelector("svg").nextSibling,
+    );
+  }
+  htmlTitle.textContent = title;
 }
