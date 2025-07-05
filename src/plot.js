@@ -292,8 +292,14 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
   // Grupo principal
   const g = svg.append("g").attr("transform", `translate(${margens.left},${margens.top})`);
 
+  // Brush deve ser adicionado primeiro!
+  const brush = d3.brush()
+    .extent([[0, 0], [width, height]])
+    .on("end", brushCallback);
+  g.append("g").attr("class", "brush").call(brush);
+
   // Polígonos do mapa (coroplético)
-  g.selectAll("path")
+  const paths = g.selectAll("path")
     .data(geoData.features)
     .enter()
     .append("path")
@@ -304,13 +310,20 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
       return total ? colorScale(total) : "#f0f0f0";
     })
     .attr("stroke", "#fff")
-    .attr("stroke-width", 1);
-
-  // Brush
-  const brush = d3.brush()
-    .extent([[0, 0], [width, height]])
-    .on("end", brushCallback);
-  g.append("g").attr("class", "brush").call(brush);
+    .attr("stroke-width", 1)
+    .on("mouseover", function(event, d) {
+      d3.select(this).attr("stroke", "black").attr("stroke-width", 2).raise();
+      const zoneName = d.properties.zone;
+      const id = Number(d.properties.location_id);
+      const total = corridasPorZona.get(id);
+      g.select("#info-zone-name").text(zoneName);
+      g.select("#info-ride-count").text(`Total de Corridas: ${total || 0}`);
+    })
+    .on("mouseout", function(event, d) {
+      d3.select(this).attr("stroke", "#fff").attr("stroke-width", 1);
+      g.select("#info-zone-name").text("");
+      g.select("#info-ride-count").text("");
+    });
 
   // --- LEGENDA DE GRADIENTE DE CORES ---
   // Parâmetros da legenda
@@ -356,4 +369,22 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
     .attr("font-size", "13px")
     .attr("font-weight", "bold")
     .text("Total de Corridas");
+
+  // --- INFOBOX DE HOVER ---
+  // Caixa de informações na parte inferior do mapa
+  const infoBox = g.append("g")
+    .attr("transform", `translate(10, ${height - 40})`);
+  infoBox.append("text")
+    .attr("id", "info-zone-name")
+    .attr("y", 0)
+    .attr("font-size", "1.1em")
+    .attr("font-weight", "bold")
+    .attr("fill", "#2a4d69")
+    .text("");
+  infoBox.append("text")
+    .attr("id", "info-ride-count")
+    .attr("y", 20)
+    .attr("font-size", "1em")
+    .attr("fill", "#3a4a5d")
+    .text("");
 }
