@@ -23,6 +23,9 @@ body {
 #map-chart {
   grid-column: 1;
   grid-row: 1 / span 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 #line-chart {
   grid-column: 2;
