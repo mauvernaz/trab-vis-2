@@ -266,3 +266,45 @@ export function plotScatterplot(
     .attr("fill", "#5ea6e0")
     .attr("opacity", 0.7);
 }
+
+// Novo: Função para desenhar o mapa com pontos de corrida e brush
+export function drawMap(elementId, geoData, taxiData, brushCallback) {
+  const svg = d3.select(`#${elementId}`);
+  svg.selectAll("*").remove();
+
+  const margens = { left: 20, right: 20, top: 20, bottom: 20 };
+  const width = +svg.style("width").split("px")[0] - margens.left - margens.right;
+  const height = +svg.style("height").split("px")[0] - margens.top - margens.bottom;
+
+  // Projeção geográfica
+  const projection = d3.geoMercator().fitSize([width, height], geoData);
+  const path = d3.geoPath(projection);
+
+  // Map de corridas por zona
+  const corridasPorZona = new Map(taxiData.map(d => [Number(d.PULocationID), Number(d.total_corridas)]));
+  const colorScale = d3.scaleSequential(d3.interpolateBlues)
+    .domain(d3.extent(Array.from(corridasPorZona.values())));
+
+  // Grupo principal
+  const g = svg.append("g").attr("transform", `translate(${margens.left},${margens.top})`);
+
+  // Polígonos do mapa (coroplético)
+  g.selectAll("path")
+    .data(geoData.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("fill", d => {
+      const id = Number(d.properties.location_id);
+      const total = corridasPorZona.get(id);
+      return total ? colorScale(total) : "#ccc";
+    })
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 1);
+
+  // Brush
+  const brush = d3.brush()
+    .extent([[0, 0], [width, height]])
+    .on("end", brushCallback);
+  g.append("g").attr("class", "brush").call(brush);
+}

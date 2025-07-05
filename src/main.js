@@ -1,11 +1,26 @@
 import { Taxi } from "./taxi.js";
-import { plotLineChart, plotBarChart, plotScatterplot } from "./plot.js";
+import { plotLineChart, plotBarChart, plotScatterplot, drawMap } from "./plot.js";
+import * as d3 from "d3";
 
 async function main() {
   try {
     const taxi = new Taxi();
     await taxi.init();
     await taxi.loadTaxi();
+
+    // Carregar dados geográficos e agregados de corridas por zona
+    const [geoData, taxiMapData] = await Promise.all([
+      d3.json("data/nyc_taxi_zones.json"),
+      taxi.query(`SELECT PULocationID, COUNT(*) as total_corridas FROM taxi_2023 GROUP BY PULocationID`)
+    ]);
+
+    // Renderizar o mapa coroplético
+    drawMap(
+      "map-chart svg",
+      geoData,
+      taxiMapData,
+      (event) => console.log("Seleção do Brush:", event.selection)
+    );
 
     // Gráfico de Linhas: Corridas por hora e tipo de dia
     const lineSql = `
