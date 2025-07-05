@@ -282,7 +282,7 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
 
   // Map de corridas por zona
   const corridasPorZona = new Map(taxiData.map(d => [Number(d.PULocationID), Number(d.total_corridas)]));
-  const colorScale = d3.scaleSequential(d3.interpolateBlues)
+  const colorScale = d3.scaleSequentialSqrt(d3.interpolateYlGnBu)
     .domain(d3.extent(Array.from(corridasPorZona.values())));
 
   // Grupo principal
@@ -297,7 +297,7 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
     .attr("fill", d => {
       const id = Number(d.properties.location_id);
       const total = corridasPorZona.get(id);
-      return total ? colorScale(total) : "#ccc";
+      return total ? colorScale(total) : "#f0f0f0";
     })
     .attr("stroke", "#fff")
     .attr("stroke-width", 1);

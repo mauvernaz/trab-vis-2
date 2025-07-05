@@ -28,12 +28,19 @@ async function main() {
       taxi.query(`SELECT PULocationID, COUNT(*) as total_corridas FROM taxi_2023 GROUP BY PULocationID`)
     ]);
 
+    // Filtrar apenas Manhattan
+    const manhattanFeatures = geoData.features.filter(f => f.properties.borough === "Manhattan");
+    const manhattanGeoData = {
+      type: "FeatureCollection",
+      features: manhattanFeatures
+    };
+
     // Projeção para uso no brush
     const svg = d3.select("#map-chart svg");
     const margens = { left: 20, right: 20, top: 20, bottom: 20 };
     const width = +svg.style("width").split("px")[0] - margens.left - margens.right;
     const height = +svg.style("height").split("px")[0] - margens.top - margens.bottom;
-    const projection = d3.geoMercator().fitSize([width, height], geoData);
+    const projection = d3.geoMercator().fitSize([width, height], manhattanGeoData);
 
     // Função de interatividade do brush
     function handleBrush(event, geoData, projection, fullDataset) {
@@ -45,7 +52,9 @@ async function main() {
           v => v.length,
           d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
           d => (new Date(d.lpep_pickup_datetime).getDay() === 0 || new Date(d.lpep_pickup_datetime).getDay() === 6) ? "Fim de Semana" : "Dia Útil"
-        ).flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })));
+        )
+        .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
+        .sort((a, b) => a.hora - b.hora);
         plotLineChart("line-chart svg", lineData);
 
         // Gráfico de Barras
@@ -75,7 +84,9 @@ async function main() {
         v => v.length,
         d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
         d => (new Date(d.lpep_pickup_datetime).getDay() === 0 || new Date(d.lpep_pickup_datetime).getDay() === 6) ? "Fim de Semana" : "Dia Útil"
-      ).flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })));
+      )
+      .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
+      .sort((a, b) => a.hora - b.hora);
       plotLineChart("line-chart svg", lineData);
       // Gráfico de Barras
       const barData = d3.rollups(
@@ -92,9 +103,9 @@ async function main() {
     // Renderizar o mapa coroplético com interatividade
     drawMap(
       "map-chart svg",
-      geoData,
+      manhattanGeoData,
       taxiMapData,
-      (event) => handleBrush(event, geoData, projection, fullDataset)
+      (event) => handleBrush(event, manhattanGeoData, projection, fullDataset)
     );
 
     // Renderização inicial dos gráficos com o fullDataset
@@ -104,7 +115,9 @@ async function main() {
       v => v.length,
       d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
       d => (new Date(d.lpep_pickup_datetime).getDay() === 0 || new Date(d.lpep_pickup_datetime).getDay() === 6) ? "Fim de Semana" : "Dia Útil"
-    ).flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })));
+    )
+    .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
+    .sort((a, b) => a.hora - b.hora);
     plotLineChart("line-chart svg", lineData);
     // Gráfico de Barras
     const barData = d3.rollups(
