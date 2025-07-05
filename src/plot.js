@@ -239,10 +239,10 @@ export function plotScatterplot(
   const height =
     +svg.style("height").split("px")[0] - margens.top - margens.bottom;
 
-  // Escala X baseada em trip_distance
+  // Escala X fixa de 0 a 23 (hora)
   const x = d3
     .scaleLinear()
-    .domain(d3.extent(data, (d) => d.trip_distance))
+    .domain([0, 23])
     .range([0, width]);
   const tipExtent = d3.extent(data, (d) => +d.tip_amount);
   const y = d3.scaleLinear().domain(tipExtent).range([height, 0]);
@@ -253,7 +253,7 @@ export function plotScatterplot(
 
   g.append("g")
     .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x));
+    .call(d3.axisBottom(x).ticks(24).tickFormat(d => `${d}h`));
 
   g.append("g").call(d3.axisLeft(y));
 
@@ -261,7 +261,7 @@ export function plotScatterplot(
     .data(data)
     .enter()
     .append("circle")
-    .attr("cx", (d) => x(d.trip_distance))
+    .attr("cx", (d) => x(d.hora))
     .attr("cy", (d) => y(+d.tip_amount))
     .attr("r", 3)
     .attr("fill", "#5ea6e0")

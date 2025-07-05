@@ -64,7 +64,13 @@ async function main() {
       total_corridas: Number(d.total_corridas)
     }));
 
-    const scatterData = fullDataset.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
+    const scatterData = fullDataset
+      .map(d => {
+        const date = new Date(d.lpep_pickup_datetime);
+        const hora = date.getHours() + (date.getMinutes() / 60);
+        return { hora, tip_amount: +d.tip_amount };
+      })
+      .filter(d => !isNaN(d.hora) && !isNaN(d.tip_amount));
 
     // Função de interatividade do brush
     async function handleBrush(event, geoData, projection, fullDataset) {
@@ -102,7 +108,13 @@ async function main() {
       .sort((a, b) => a.dia_semana - b.dia_semana);
       plotBarChart("bar-chart svg", barDataFiltrado);
       // Gráfico de Dispersão
-      const scatterDataFiltrado = dadosFiltrados.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
+      const scatterDataFiltrado = dadosFiltrados
+        .map(d => {
+          const date = new Date(d.lpep_pickup_datetime);
+          const hora = date.getHours() + (date.getMinutes() / 60);
+          return { hora, tip_amount: +d.tip_amount };
+        })
+        .filter(d => !isNaN(d.hora) && !isNaN(d.tip_amount));
       plotScatterplot("scatter-plot svg", scatterDataFiltrado);
     }
 
