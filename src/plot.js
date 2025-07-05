@@ -311,4 +311,49 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
     .extent([[0, 0], [width, height]])
     .on("end", brushCallback);
   g.append("g").attr("class", "brush").call(brush);
+
+  // --- LEGENDA DE GRADIENTE DE CORES ---
+  // Parâmetros da legenda
+  const legendWidth = 20;
+  const legendHeight = 200;
+  const legendMargin = 20;
+  const legendX = width - legendWidth - legendMargin;
+  const legendY = legendMargin;
+  const legendDomain = [0, maxCorridas * 0.2, maxCorridas * 0.4, maxCorridas * 0.6, maxCorridas * 0.8, maxCorridas];
+  const legendRange = ["#ADD8E6", "#90EE90", "#FFFFE0", "#FFA500", "#FF4500", "#8B0000"];
+
+  // Definição do gradiente
+  const defs = svg.append("defs");
+  const linearGradient = defs.append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%")
+    .attr("y1", "100%")
+    .attr("x2", "0%")
+    .attr("y2", "0%");
+
+  legendDomain.forEach((d, i) => {
+    linearGradient.append("stop")
+      .attr("offset", `${(i / (legendDomain.length - 1)) * 100}%`)
+      .attr("stop-color", legendRange[i]);
+  });
+
+  // Grupo da legenda
+  const legendG = svg.append("g")
+    .attr("class", "legend")
+    .attr("transform", `translate(${legendX + margens.left},${legendY + margens.top})`);
+
+  // Retângulo da barra de cor
+  legendG.append("rect")
+    .attr("width", legendWidth)
+    .attr("height", legendHeight)
+    .style("fill", "url(#legend-gradient)");
+
+  // Título da legenda
+  legendG.append("text")
+    .attr("x", legendWidth / 2)
+    .attr("y", -10)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "13px")
+    .attr("font-weight", "bold")
+    .text("Total de Corridas");
 }
