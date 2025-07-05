@@ -283,8 +283,11 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
 
   // Map de corridas por zona
   const corridasPorZona = new Map(taxiData.map(d => [Number(d.PULocationID), Number(d.total_corridas)]));
-  const colorScale = d3.scaleSequentialSqrt(d3.interpolateYlGnBu)
-    .domain(d3.extent(Array.from(corridasPorZona.values())));
+  const maxCorridas = d3.max(corridasPorZona.values());
+
+  const colorScale = d3.scaleLinear()
+    .domain([0, maxCorridas * 0.2, maxCorridas * 0.4, maxCorridas * 0.6, maxCorridas * 0.8, maxCorridas])
+    .range(["#ADD8E6", "#90EE90", "#FFFFE0", "#FFA500", "#FF4500", "#8B0000"]);
 
   // Grupo principal
   const g = svg.append("g").attr("transform", `translate(${margens.left},${margens.top})`);
