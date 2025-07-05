@@ -42,31 +42,36 @@ async function main() {
     const height = +svg.style("height").split("px")[0] - margens.top - margens.bottom;
     const projection = d3.geoMercator().fitSize([width, height], manhattanGeoData);
 
+    // Dados iniciais para reset
+    const lineData = d3.rollups(
+      fullDataset,
+      v => v.length,
+      d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
+      d => (new Date(d.lpep_pickup_datetime).getDay() === 0 || new Date(d.lpep_pickup_datetime).getDay() === 6) ? "Fim de Semana" : "Dia Útil"
+    )
+    .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
+    .sort((a, b) => a.hora - b.hora);
+
+    const barSql = `
+      SELECT EXTRACT('dow' FROM lpep_pickup_datetime) AS dia_semana, COUNT(*) as total_corridas 
+      FROM taxi_2023 
+      GROUP BY dia_semana 
+      ORDER BY dia_semana
+    `;
+    const barData = await taxi.query(barSql);
+    const barDataProcessed = barData.map(d => ({
+      dia_semana: Number(d.dia_semana),
+      total_corridas: Number(d.total_corridas)
+    }));
+
+    const scatterData = fullDataset.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
+
     // Função de interatividade do brush
-    function handleBrush(event, geoData, projection, fullDataset) {
+    async function handleBrush(event, geoData, projection, fullDataset) {
       if (!event.selection) {
-        // Sem seleção: redesenha com dados completos
-        // Gráfico de Linhas
-        const lineData = d3.rollups(
-          fullDataset,
-          v => v.length,
-          d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
-          d => (new Date(d.lpep_pickup_datetime).getDay() === 0 || new Date(d.lpep_pickup_datetime).getDay() === 6) ? "Fim de Semana" : "Dia Útil"
-        )
-        .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
-        .sort((a, b) => a.hora - b.hora);
+        console.log("Resetando gráficos para a visão completa...");
         plotLineChart("line-chart svg", lineData);
-
-        // Gráfico de Barras
-        const barData = d3.rollups(
-          fullDataset,
-          v => d3.mean(v, d => +d.total_amount),
-          d => d.passenger_count
-        ).map(([passenger_count, media_valor]) => ({ passenger_count, media_valor }));
-        plotBarChart("bar-chart svg", barData);
-
-        // Gráfico de Dispersão
-        const scatterData = fullDataset.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
+        plotBarChart("bar-chart svg", barDataProcessed);
         plotScatterplot("scatter-plot svg", scatterData);
         return;
       }
@@ -79,7 +84,7 @@ async function main() {
       // Filtrar dados
       const dadosFiltrados = fullDataset.filter(d => zonasSelecionadas.includes(Number(d.PULocationID)));
       // Gráfico de Linhas
-      const lineData = d3.rollups(
+      const lineDataFiltrado = d3.rollups(
         dadosFiltrados,
         v => v.length,
         d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
@@ -87,17 +92,18 @@ async function main() {
       )
       .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
       .sort((a, b) => a.hora - b.hora);
-      plotLineChart("line-chart svg", lineData);
-      // Gráfico de Barras
-      const barData = d3.rollups(
+      plotLineChart("line-chart svg", lineDataFiltrado);
+      // Gráfico de Barras: total de corridas por dia da semana (filtrado)
+      const barDataFiltrado = Array.from(d3.rollups(
         dadosFiltrados,
-        v => d3.mean(v, d => +d.total_amount),
-        d => d.passenger_count
-      ).map(([passenger_count, media_valor]) => ({ passenger_count, media_valor }));
-      plotBarChart("bar-chart svg", barData);
+        v => v.length,
+        d => new Date(d.lpep_pickup_datetime).getDay()
+      ), ([dia_semana, total_corridas]) => ({ dia_semana, total_corridas }))
+      .sort((a, b) => a.dia_semana - b.dia_semana);
+      plotBarChart("bar-chart svg", barDataFiltrado);
       // Gráfico de Dispersão
-      const scatterData = dadosFiltrados.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
-      plotScatterplot("scatter-plot svg", scatterData);
+      const scatterDataFiltrado = dadosFiltrados.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
+      plotScatterplot("scatter-plot svg", scatterDataFiltrado);
     }
 
     // Renderizar o mapa coroplético com interatividade
@@ -109,25 +115,8 @@ async function main() {
     );
 
     // Renderização inicial dos gráficos com o fullDataset
-    // Gráfico de Linhas
-    const lineData = d3.rollups(
-      fullDataset,
-      v => v.length,
-      d => d.hora = new Date(d.lpep_pickup_datetime).getHours(),
-      d => (new Date(d.lpep_pickup_datetime).getDay() === 0 || new Date(d.lpep_pickup_datetime).getDay() === 6) ? "Fim de Semana" : "Dia Útil"
-    )
-    .flatMap(([hora, tipos]) => tipos.map(([tipo_dia, total_corridas]) => ({ hora, tipo_dia, total_corridas })))
-    .sort((a, b) => a.hora - b.hora);
     plotLineChart("line-chart svg", lineData);
-    // Gráfico de Barras
-    const barData = d3.rollups(
-      fullDataset,
-      v => d3.mean(v, d => +d.total_amount),
-      d => d.passenger_count
-    ).map(([passenger_count, media_valor]) => ({ passenger_count, media_valor }));
-    plotBarChart("bar-chart svg", barData);
-    // Gráfico de Dispersão
-    const scatterData = fullDataset.map(d => ({ trip_distance: +d.trip_distance, tip_amount: +d.tip_amount })).filter(d => !isNaN(d.trip_distance) && !isNaN(d.tip_amount));
+    plotBarChart("bar-chart svg", barDataProcessed);
     plotScatterplot("scatter-plot svg", scatterData);
   } catch (error) {
     console.error(error);

@@ -5,6 +5,7 @@ export function plotBarChart(
   data,
   margens = { left: 50, right: 25, top: 25, bottom: 50 },
 ) {
+  const diasDaSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   const svg = d3.select(`#${elementId}`);
   svg.selectAll("*").remove();
 
@@ -13,17 +14,17 @@ export function plotBarChart(
   const height =
     +svg.style("height").split("px")[0] - margens.top - margens.bottom;
 
-  // Escala X baseada em passenger_count
+  // Eixo X fixo para os dias da semana
   const x = d3
     .scaleBand()
-    .domain(data.map((d) => d.passenger_count))
+    .domain(diasDaSemana)
     .range([0, width])
-    .padding(0.1);
+    .padding(0.2);
 
-  // Escala Y baseada em media_valor
+  // Escala Y baseada em total_corridas
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.media_valor)])
+    .domain([0, d3.max(data, (d) => d.total_corridas)])
     .range([height, 0]);
 
   const g = svg
@@ -41,10 +42,10 @@ export function plotBarChart(
     .enter()
     .append("rect")
     .attr("class", "bar")
-    .attr("x", (d) => x(d.passenger_count))
-    .attr("y", (d) => y(d.media_valor))
+    .attr("x", (d) => x(diasDaSemana[d.dia_semana]))
+    .attr("y", (d) => y(d.total_corridas))
     .attr("width", x.bandwidth())
-    .attr("height", (d) => height - y(d.media_valor))
+    .attr("height", (d) => height - y(d.total_corridas))
     .attr("fill", "#5ea6e0");
 
   g.selectAll(".label")
@@ -52,10 +53,10 @@ export function plotBarChart(
     .enter()
     .append("text")
     .attr("class", "label")
-    .attr("x", (d) => x(d.passenger_count) + x.bandwidth() / 2)
-    .attr("y", (d) => y(d.media_valor) - 5)
+    .attr("x", (d) => x(diasDaSemana[d.dia_semana]) + x.bandwidth() / 2)
+    .attr("y", (d) => y(d.total_corridas) - 5)
     .attr("text-anchor", "middle")
-    .text((d) => d.media_valor.toFixed(2));
+    .text((d) => d.total_corridas);
 }
 
 export function plotLineChart(
