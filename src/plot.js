@@ -1,4 +1,56 @@
+
 import * as d3 from "d3";
+
+// Gráfico de barras: valor médio de gorjetas por dia da semana
+export function plotBarChartGorjetaPorDia(elementId, data, margens = { left: 50, right: 25, top: 25, bottom: 50 }) {
+  const diasDaSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const svg = d3.select(`#${elementId}`);
+  svg.selectAll("*").remove();
+
+  const width = +svg.style("width").split("px")[0] - margens.left - margens.right;
+  const height = +svg.style("height").split("px")[0] - margens.top - margens.bottom;
+
+  // Eixo X fixo para os dias da semana
+  const x = d3.scaleBand().domain(diasDaSemana).range([0, width]).padding(0.2);
+  // Escala Y baseada em valor médio de gorjeta
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.media_gorjeta)])
+    .range([height, 0]);
+
+  const g = svg.append("g").attr("transform", `translate(${margens.left},${margens.top})`);
+
+  g.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x));
+
+  g.append("g").call(d3.axisLeft(y));
+
+  g.selectAll(".bar-gorjeta")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "bar-gorjeta")
+    .attr("x", d => x(diasDaSemana[d.dia_semana]))
+    .attr("y", d => y(d.media_gorjeta))
+    .attr("width", x.bandwidth())
+    .attr("height", d => height - y(d.media_gorjeta))
+    .attr("fill", "#f7b731");
+
+  g.selectAll(".label-gorjeta")
+    .data(data)
+    .enter()
+    .append("text")
+    .attr("class", "label-gorjeta")
+    .attr("x", d => x(diasDaSemana[d.dia_semana]) + x.bandwidth() / 2)
+    .attr("y", d => y(d.media_gorjeta) - 5)
+    .attr("text-anchor", "middle")
+    .style("font-size", "0.95em")
+    .text(d => d.media_gorjeta.toFixed(2));
+
+}
+
+// Exportar para uso global (window) após a definição da função
+window.plotBarChartGorjetaPorDia = plotBarChartGorjetaPorDia;
 
 export function plotBarChart(
   elementId,
@@ -292,12 +344,6 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
   // Grupo principal
   const g = svg.append("g").attr("transform", `translate(${margens.left},${margens.top})`);
 
-  // Brush deve ser adicionado primeiro!
-  const brush = d3.brush()
-    .extent([[0, 0], [width, height]])
-    .on("end", brushCallback);
-  g.append("g").attr("class", "brush").call(brush);
-
   // Polígonos do mapa (coroplético)
   const paths = g.selectAll("path")
     .data(geoData.features)
@@ -312,6 +358,9 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
     .attr("stroke", "#fff")
     .attr("stroke-width", 1)
     .on("mouseover", function(event, d) {
+      // Só mostra hover se não estiver "brushando" (verifica se há seleção ativa)
+      const brushSelection = g.select(".brush").select(".selection");
+      if (brushSelection.size() && brushSelection.attr("width") !== null && brushSelection.attr("height") !== null) return;
       d3.select(this).attr("stroke", "black").attr("stroke-width", 2).raise();
       const zoneName = d.properties.zone;
       const id = Number(d.properties.location_id);
@@ -320,10 +369,18 @@ export function drawMap(elementId, geoData, taxiData, brushCallback) {
       g.select("#info-ride-count").text(`Total de Corridas: ${total || 0}`);
     })
     .on("mouseout", function(event, d) {
+      const brushSelection = g.select(".brush").select(".selection");
+      if (brushSelection.size() && brushSelection.attr("width") !== null && brushSelection.attr("height") !== null) return;
       d3.select(this).attr("stroke", "#fff").attr("stroke-width", 1);
       g.select("#info-zone-name").text("");
       g.select("#info-ride-count").text("");
     });
+
+  // Brush: sempre a camada mais superior
+  const brush = d3.brush()
+    .extent([[0, 0], [width, height]])
+    .on("end", brushCallback);
+  g.append("g").attr("class", "brush").call(brush).raise();
 
   // --- LEGENDA DE GRADIENTE DE CORES ---
   // Parâmetros da legenda

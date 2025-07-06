@@ -8,18 +8,18 @@ body {
   color: #222;
 }
 
+
 #dashboard {
   display: grid;
-  grid-template-columns: 600px 1fr;
+  grid-template-columns: 600px 1fr 420px;
   grid-template-rows: repeat(3, auto);
   gap: 20px;
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 40px auto;
   padding: 20px;
   align-items: start;
 }
 
-/* Novo layout dos containers */
 #map-chart {
   grid-column: 1;
   grid-row: 1 / span 3;
@@ -38,6 +38,16 @@ body {
 #scatter-plot {
   grid-column: 2;
   grid-row: 3;
+}
+#bar-gorjeta-dia {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+  min-width: 340px;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .chart-container {

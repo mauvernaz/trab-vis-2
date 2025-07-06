@@ -72,13 +72,22 @@ async function main() {
       })
       .filter(d => !isNaN(d.hora) && !isNaN(d.tip_amount));
 
+    // Calcular valor médio de gorjeta por dia da semana
+    let gorjetaPorDia = d3.rollups(
+      fullDataset,
+      v => d3.mean(v, d => +d.tip_amount),
+      d => new Date(d.lpep_pickup_datetime).getDay()
+    ).map(([dia_semana, media_gorjeta]) => ({ dia_semana, media_gorjeta }));
+
     // Função de interatividade do brush
     async function handleBrush(event, geoData, projection, fullDataset) {
       if (!event.selection) {
-        console.log("Resetando gráficos para a visão completa...");
+        // Resetar gráficos para a visão completa
         plotLineChart("line-chart svg", lineData);
         plotBarChart("bar-chart svg", barDataProcessed);
         plotScatterplot("scatter-plot svg", scatterData);
+        // Resetar gráfico de gorjeta média
+        window.plotBarChartGorjetaPorDia("bar-gorjeta-dia svg", gorjetaPorDia);
         return;
       }
       const [[x0, y0], [x1, y1]] = event.selection;
@@ -116,6 +125,13 @@ async function main() {
         })
         .filter(d => !isNaN(d.hora) && !isNaN(d.tip_amount));
       plotScatterplot("scatter-plot svg", scatterDataFiltrado);
+      // Gráfico de Gorjeta Média por Dia da Semana (filtrado)
+      const gorjetaPorDiaFiltrado = d3.rollups(
+        dadosFiltrados,
+        v => d3.mean(v, d => +d.tip_amount),
+        d => new Date(d.lpep_pickup_datetime).getDay()
+      ).map(([dia_semana, media_gorjeta]) => ({ dia_semana, media_gorjeta }));
+      window.plotBarChartGorjetaPorDia("bar-gorjeta-dia svg", gorjetaPorDiaFiltrado);
     }
 
     // Renderizar o mapa coroplético com interatividade
@@ -130,6 +146,7 @@ async function main() {
     plotLineChart("line-chart svg", lineData);
     plotBarChart("bar-chart svg", barDataProcessed);
     plotScatterplot("scatter-plot svg", scatterData);
+    window.plotBarChartGorjetaPorDia("bar-gorjeta-dia svg", gorjetaPorDia);
   } catch (error) {
     console.error(error);
   }
