@@ -10,11 +10,15 @@ export function plotBarChartGorjetaPorDia(elementId, data, margens = { left: 50,
   const width = +svg.style("width").split("px")[0] - margens.left - margens.right;
   const height = +svg.style("height").split("px")[0] - margens.top - margens.bottom;
 
+  // Escala global fixa para todos os gráficos de gorjeta
+  const GORJETA_MIN = 0;
+  const GORJETA_MAX = 4; // ajuste conforme necessário para o seu domínio
+
   // Eixo X fixo para os dias da semana
   const x = d3.scaleBand().domain(diasDaSemana).range([0, width]).padding(0.2);
-  // Escala Y baseada em valor médio de gorjeta
+  // Escala Y baseada em valor médio de gorjeta, mas sempre fixa
   const y = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.media_gorjeta)])
+    .domain([GORJETA_MIN, GORJETA_MAX])
     .range([height, 0]);
 
   const g = svg.append("g").attr("transform", `translate(${margens.left},${margens.top})`);
@@ -73,7 +77,7 @@ export function plotBarChart(
     .range([0, width])
     .padding(0.2);
 
-  // Escala Y baseada em total_corridas
+  // Escala Y dinâmica baseada nos dados
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(data, (d) => d.total_corridas)])
@@ -135,7 +139,9 @@ export function plotLineChart(
       })),
   }));
 
+  // Escala X fixa
   const x = d3.scaleLinear().domain([0, 23]).range([0, width]);
+  // Escala Y dinâmica baseada nos dados
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(data, (d) => +d.total_corridas)])
@@ -221,9 +227,12 @@ export function plotBarChartPeriodos(
     .domain(periodosLabels)
     .range([0, width])
     .padding(0.1);
+  // Escala Y global fixa para gorjeta
+  const GORJETA_MIN = 0;
+  const GORJETA_MAX = 55; // ajuste conforme necessário para o seu domínio
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.media_gorjeta)])
+    .domain([GORJETA_MIN, GORJETA_MAX])
     .range([height, 0]);
   const periodos = ["Madrugada", "Manhã", "Tarde", "Noite"];
 
@@ -296,8 +305,10 @@ export function plotScatterplot(
     .scaleLinear()
     .domain([0, 23])
     .range([0, width]);
-  const tipExtent = d3.extent(data, (d) => +d.tip_amount);
-  const y = d3.scaleLinear().domain(tipExtent).range([height, 0]);
+  // Escala Y global fixa para gorjeta
+  const GORJETA_MIN = 0;
+  const GORJETA_MAX = 55; // ajuste conforme necessário para o seu domínio
+  const y = d3.scaleLinear().domain([GORJETA_MIN, GORJETA_MAX]).range([height, 0]);
 
   const g = svg
     .append("g")
